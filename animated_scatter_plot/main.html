@@ -1,0 +1,159 @@
+<html>
+<head>
+<script type="text/javascript" src="../d3/d3.min.js"></script>
+<style type="text/css">			
+	.axis path,
+	.axis line {
+		fill: none;
+		stroke: black;
+		shape-rendering: crispEdges;
+	}
+
+	.axis text {
+		font-family: sans-serif;
+		font-size: 11px;
+	}
+</style>
+</head>
+<body>
+<p id="animate">Re-animate</p>
+<p id="add_new_item">Add new item</p>
+
+<script type="text/javascript">
+
+var h = 300;
+var w = 300;
+var padding = 30;
+var dataset = [];
+var i;
+
+var maxRange = Math.random() * 1000
+	
+for (i = 0; i < 50; i++) {
+	var dataX = Math.abs(Math.random()) * maxRange;
+	var dataY = Math.abs(Math.random()) * maxRange;
+	dataset.push([dataX, dataY]);
+}
+
+var scatterPlot = d3.select("body").append("svg").attr("height", h).attr("width", w);
+
+// Create clip-path
+scatterPlot.append("clipPath")
+	.attr("id", "chart-area")
+	.append("rect")
+	.attr("x", padding)
+	.attr("y", padding)
+	.attr("height", h - 2 * padding)
+	.attr("width", w - 2 * padding);
+
+var xScale = d3.scale.linear()
+	.domain([0, d3.max(dataset, function(d) {return d[0]})])
+	.range([padding, w - 2 * padding]);
+var yScale = d3.scale.linear()
+	.domain([0, d3.max(dataset, function(d) {return d[1]})])
+	.range([h - padding, padding]);
+var points = scatterPlot.append("g").attr("id", "circles")
+	.attr("clip-path", "url(#chart-area)")
+	.selectAll("circle").data(dataset).enter().append("circle");
+// var points = scatterPlot.selectAll("circle").data(dataset).enter().append("circle");
+var xAxis = d3.svg.axis()
+	.scale(xScale)
+	.orient("bottom")
+	.ticks(5);
+var yAxis = d3.svg.axis()
+	.scale(yScale)
+	.orient("left")
+	.ticks(5);
+
+scatterPlot.append("g")
+	.attr("class", "x axis")
+	.attr("transform", "translate(0, " + (h - padding) + ")")
+	.call(xAxis);
+scatterPlot.append("g")
+	.attr("class", "y axis")
+	.attr("transform", "translate(" + padding + ", 0)")
+	.call(yAxis);
+
+points
+.attr("cx", function(d) {
+	return xScale(d[0]);
+})
+.attr("cy", function(d) {
+	return yScale(d[1]);
+})
+.attr("r", 2);
+
+
+d3.select("#animate").on("click", function() {
+	var numItems = dataset.length;
+	dataset = [];
+	var maxRange = Math.random() * 1000
+
+	for (i = 0; i < numItems; i++) {
+		var dataX = Math.abs(Math.random()) * maxRange;
+		var dataY = Math.abs(Math.random()) * maxRange;
+		dataset.push([dataX, dataY]);
+	}
+
+	xScale.domain([0, d3.max(dataset, function(d) {return d[0]})]);
+	yScale.domain([0, d3.max(dataset, function(d) {return d[1]})]);
+
+	scatterPlot.selectAll("circle").data(dataset)
+	.transition()
+	.duration(1000)
+	.each("start", function() {
+		d3.select(this)
+		.attr("fill", "magenta")
+		.attr("r", 8);
+	})
+	.each("end", function() {
+		// d3.select(this)
+		// .transition()
+		// .duration(500)
+		// .attr("fill", "black")
+		// .attr("r", 2);
+	})
+	.attr("cx", function(d) {
+		return xScale(d[0]);
+	})
+	.attr("cy", function(d) {
+		return yScale(d[1]);
+	});	
+
+	scatterPlot.select(".x.axis").transition().duration(1000).call(xAxis);
+	scatterPlot.select(".y.axis").transition().duration(1000).call(yAxis);
+});
+
+d3.select("#add_new_item").on("click", function() {
+	console.log("Adding new item");
+
+	var maxRange = Math.random() * 1000
+	var dataX = Math.abs(Math.random()) * maxRange;
+	var dataY = Math.abs(Math.random()) * maxRange;
+
+	dataset.push(new Array(dataX, dataY));
+	console.log("Adding new item: (" + dataX + ", " + dataY + ")");
+
+	xScale.domain([0, d3.max(dataset, function(d) {return d[0]})]);
+	yScale.domain([0, d3.max(dataset, function(d) {return d[1]})]);
+
+	scatterPlot.selectAll("circle").data(dataset).enter().append("circle")
+	.attr("cx", function(d) {
+		// console.log("Adding " + d[0] + " scaled to " + xScale(d[0]));
+		return xScale(d[0]);
+	})
+	.attr("cy", function(d) {
+		// console.log("Adding " + d[1] + " scaled to " + yScale(d[1]));
+		return yScale(d[1]);
+	})
+	.attr("r", 4)
+	.attr("fill", "teal")
+	.attr("clip-path", "url(#chart-area)");
+
+
+});
+
+</script>
+
+</body>
+</html>
